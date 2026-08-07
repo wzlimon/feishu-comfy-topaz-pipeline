@@ -10,7 +10,7 @@
 # ------------------------------------------------------------
 feishu:
   # 开放平台 -> 企业自建应用 -> 凭证与基础信息
-  app_id: "[需填写] 飞书自建应用的 App ID，形如 cli_aaf98xxxxxx"
+  app_id: "[需填写] 飞书自建应用的 App ID，形如 cli_xxxxxxxxxxxx"
   app_secret: "[需填写] App Secret"
 
   # 多维表格 URL 里的两段 ID
@@ -94,7 +94,7 @@ comfyui:
       "1080P": 2.0
 
   # ComfyUI 输出根目录（用于兜底定位产物）
-  output_dir: "[需填写] ComfyUI 输出根目录，如 D:/cfu/ComfyUI/output"
+  output_dir: "[需填写] ComfyUI 输出根目录，如 <你的 ComfyUI 输出目录>"
 
   # 单个任务最长等待时间（秒）。长视频生成可能要 1000+ 秒，放宽到 1500
   timeout: 1500
@@ -144,7 +144,7 @@ topaz:
 # ------------------------------------------------------------
 baidu:
   # 百度网盘客户端「同步盘」映射到本地的文件夹
-  sync_root: "[需填写] 百度网盘同步盘本地根目录，如 D:/bdwp"
+  sync_root: "[需填写] 百度网盘同步盘本地根目录，如 <你的网盘同步盘根目录>"
 
   # 同步盘内的子目录，脚本会自动创建
   target_subdir: "minimax_video_1080"

@@ -22,7 +22,7 @@
 |------|------|------|
 | ComfyUI 连通 | ✅ 已验证 | 0.30.0，RTX 4070 Ti SUPER 16G，端口 8188 |
 | Topaz 超分 | ✅ 已验证 | 5.0.2 便携版，prob-4 模型实测出片 |
-| 百度网盘目录 | ✅ 已建好 | `D:\bdwp\minimax_video_1080` |
+| 百度网盘目录 | ✅ 已建好 | 路径见 config 的 `baidu.sync_root` |
 | 全部代码 | ✅ 已写完 | 自检脚本、调度器、四个模块 |
 | **ComfyUI 工作流** | ⬜ **待你导出** | 见第三节 步骤 1 |
 | **飞书应用+表格** | ⬜ **待你配置** | 见第三节 步骤 2 |
@@ -74,7 +74,7 @@ feishu-comfy-pipeline/
 双击 `体检.bat` 旁边不行，这步要用命令。打开 PowerShell，粘贴：
 
 ```powershell
-cd "C:\Users\办公室-图文\WorkBuddy\2026-08-05-22-26-22\feishu-comfy-pipeline"
+cd "<项目目录>"
 .\.venv\Scripts\python.exe doctor.py --inspect-workflow
 ```
 
@@ -167,22 +167,22 @@ https://xxx.feishu.cn/base/bascnAbCdEfGhIjK123456?table=tblXyZ7890&view=vew...
 
 ```yaml
 feishu:
-  app_id: "cli_a1b2c3d4e5f6g7h8"
-  app_secret: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-  app_token: "bascnAbCdEfGhIjK123456"
-  table_id: "tblXyZ7890"
+  app_id: "<你的飞书 App ID，形如 cli_xxxxxxxxxxxx>"
+  app_secret: "<你的 App Secret>"
+  app_token: "<多维表格 app_token（base 段）>"
+  table_id: "<表格 table_id>"
 ```
 
 ---
 
 ### 步骤 3：确认网盘目录（30 秒）
 
-脚本已经在 `D:\bdwp\minimax_video_1080` 建好了目录。
+脚本已经在 `<网盘同步根目录>\minimax_video_1080` 建好了目录。
 
-打开百度网盘客户端 → **设置 → 同步盘**，确认同步的本地文件夹**就是** `D:\bdwp`。
+打开百度网盘客户端 → **设置 → 同步盘**，确认同步的本地文件夹**就是** `<网盘同步根目录>`。
 
 - 如果是别的路径，改 `config.yaml` 里的 `baidu.sync_root`
-- 如果你还没开同步盘功能，在客户端里开一下，把 `D:\bdwp` 设为同步目录
+- 如果你还没开同步盘功能，在客户端里开一下，把 `<网盘同步根目录>` 设为同步目录
 
 ---
 
@@ -201,10 +201,10 @@ feishu:
 .\.venv\Scripts\python.exe doctor.py --test-comfy "一只橘猫在夕阳下奔跑"
 
 # 只测 Topaz 超分（拿上一步的产物，或你现成的 480P 视频）
-.\.venv\Scripts\python.exe doctor.py --test-topaz "D:\cfu\ComfyUI\output\xxx.mp4"
+.\.venv\Scripts\python.exe doctor.py --test-topaz "<你的 480P 视频路径>"
 
 # 只测网盘投递
-.\.venv\Scripts\python.exe doctor.py --test-delivery "D:\xxx_1080p_test.mp4"
+.\.venv\Scripts\python.exe doctor.py --test-delivery "<你的测试视频路径>"
 ```
 
 ### 4-3. 全链路试跑
@@ -244,8 +244,8 @@ feishu:
 3. 名称：`飞书视频流水线`
 4. 触发器：**当前用户登录时**
 5. 操作：**启动程序**
-   - 程序：`C:\Users\办公室-图文\WorkBuddy\2026-08-05-22-26-22\feishu-comfy-pipeline\启动.bat`
-   - 起始于：`C:\Users\办公室-图文\WorkBuddy\2026-08-05-22-26-22\feishu-comfy-pipeline`
+   - 程序：`<项目目录>\启动.bat`
+   - 起始于：`<项目目录>`
 6. 完成后在任务属性里勾上「**如果任务失败，按以下频率重新启动**」
 
 > 注意 ComfyUI 也得开机自启，否则脚本连不上。可以在同一个任务计划里加一条。
@@ -288,7 +288,7 @@ feishu:
   写完再改名成 `.mp4`，网盘看到的就是完整文件。
 - **为什么本地也记一份状态**：万一飞书回写失败（网络抖动），下一轮不会重复生成同一条。
 - **单实例锁**：防止你不小心开了两个窗口，两个进程抢同一条任务、抢同一块显卡。
-- **480P 原片归档**：留在 `D:\video\480p_archive`，万一超分参数想重调，不用重新生成。
+- **480P 原片归档**：留在 `<归档目录>`（由 `runtime.keep_source_dir` 配置），万一超分参数想重调，不用重新生成。
   不想留就把 `runtime.keep_source_dir` 置空。
 
 ---
@@ -313,7 +313,7 @@ notify:
   enabled: true                       # 总开关
   channel: "feishu_webhook"           # 目前只支持飞书群机器人
   on: "both"                          # both=成功+失败都通知 / done=仅成功 / failed=仅失败
-  feishu_webhook_url: "https://open.feishu.cn/open-apis/bot/v2/hook/xxxx"
+  feishu_webhook_url: "<你的飞书群机器人 Webhook 地址>"
   feishu_webhook_secret: ""           # 签名校验密钥，不开启留空
 ```
 
