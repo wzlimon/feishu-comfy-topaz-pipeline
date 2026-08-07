@@ -322,3 +322,36 @@ notify:
 
 > 通知走独立通道，即使飞书表格接口抖动也不影响主流程；未配置 webhook 时静默跳过。
 
+
+---
+
+## 十、开源与协作
+
+本项目已在 GitHub 开源。仓库不包含任何密钥：`config.yaml`（含飞书 App 密钥、本机绝对路径）已被
+`.gitignore` 忽略，仅 `config.example.yaml` 入库作为配置模板。
+
+**从源码获取并运行（他人视角）：**
+
+```bash
+git clone <本仓库地址>
+cd feishu-comfy-topaz-pipeline
+python -m venv .venv && .venv/Scripts/activate      # Windows；Linux/macOS 用 source .venv/bin/activate
+pip install -r requirements.txt
+cp config.example.yaml config.yaml                   # 然后填入你自己的飞书/ComfyUI/Topaz/网盘配置
+python doctor.py                                     # 自检配置与节点
+python main.py                                       # 常驻轮询；或 python main.py --once 跑一轮
+```
+
+**如何参与：**
+
+- 提 Issue 反馈问题或建议；
+- Fork 后开分支开发，PR 合并进 `main`；
+- 任何改动都请确保 `config.yaml` 永不进入版本库（本地配置只留在自己机器上）。
+
+**本地开发的日常同步：**
+
+```bash
+git add -A
+git commit -m "描述这次改动"
+git push origin main        # 推送到 GitHub，保持云端与本地一致
+```
