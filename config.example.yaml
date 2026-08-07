@@ -1,0 +1,199 @@
+# ============================================================
+# 飞书 -> ComfyUI -> Topaz -> 百度网盘  全链路配置（模板）
+# ------------------------------------------------------------
+# 复制本文件为 config.yaml，把 [需填写] 处替换成你自己的值。
+# config.yaml 已被 .gitignore 忽略，不会进入版本库（避免泄露密钥）。
+# ============================================================
+
+# ------------------------------------------------------------
+# 1. 飞书多维表格
+# ------------------------------------------------------------
+feishu:
+  # 开放平台 -> 企业自建应用 -> 凭证与基础信息
+  app_id: "[需填写] 飞书自建应用的 App ID，形如 cli_aaf98xxxxxx"
+  app_secret: "[需填写] App Secret"
+
+  # 多维表格 URL 里的两段 ID
+  # https://xxx.feishu.cn/base/<app_token>?table=<table_id>&view=...
+  app_token: "[需填写] 多维表格 app_token（base 段）"
+  table_id: "[需填写] 多维表格 table_id"
+
+  # 轮询间隔（秒）。30 秒足够，太小会撞飞书频率限制
+  poll_interval: 30
+
+  # 数据表字段名，必须和多维表格里的列名 **完全一致**（含大小写和空格）
+  # 仅当你在飞书表格里改了列名时才需要同步修改这里
+  fields:
+    prompt: "prompt"          # 文本，表单填写项
+    status: "status"          # 单选：待处理 / 生成中 / 已完成 / 失败
+    negative: "negative"      # 文本，可选
+    seed: "seed"              # 数字，可选，留空或 0 则每次随机
+    ratio: "ratio"            # 单选，比例
+    video_len: "video_len"    # 单选，视频时长（秒）
+    resolution: "resolution"  # 单选，生成分辨率（480P/720P/1080P）
+    upscale: "upscale"        # 单选，是否超分：是 / 否
+    result_name: "result_name"  # 文本，回写最终文件名
+    result_path: "result_path"  # 文本，回写网盘内路径
+    error: "error"            # 文本，失败时回写原因
+    duration: "duration"      # 数字，回写总耗时
+
+  # 状态机取值，需与多维表格单选项文字一致
+  status_values:
+    pending: "待处理"
+    running: "生成中"
+    done: "已完成"
+    failed: "失败"
+
+# ------------------------------------------------------------
+# 2. ComfyUI
+# ------------------------------------------------------------
+comfyui:
+  host: "127.0.0.1"
+  port: 8188
+
+  # API 格式工作流。必须用 ComfyUI 的 "Save (API Format)" 导出
+  workflow: "workflows/t2v.json"
+
+  # 提示词注入目标。node_id 是工作流 JSON 里的节点编号（字符串）
+  # 换成你自己的工作流时，用 doctor.py --inspect-workflow 列出候选节点
+  inject:
+    prompt_node: "105:104"           # MiniMaxH3ImageToVideo，装正向提示词
+    prompt_field: "prompt"
+    negative_node: ""                # 此工作流无独立负向节点
+    negative_field: "negative_prompt"
+    seed_node: "105:15"              # RandomNoise，覆盖固定种子
+    seed_field: "noise_seed"
+
+    # 比例：注入到分辨率选择器节点 115 的 aspect_ratio 字段
+    ratio_node: "115"
+    ratio_field: "aspect_ratio"
+    ratio_default: "16:9 (Widescreen)"
+    # 飞书表单单选的「友好标签」 -> ResolutionSelector 接受的 aspect_ratio 字符串
+    # 现已容错：表单选项写 "9:16" / "9：16" / "9:16 竖屏" 等都能识别
+    ratio_options:
+      "16:9 横屏": "16:9 (Widescreen)"
+      "9:16 竖屏": "9:16 (Portrait Widescreen)"
+      "1:1 方形": "1:1 (Square)"
+      "21:9 超宽屏": "21:9 (Ultrawide)"
+      "4:3 标清横屏": "4:3 (Standard)"
+      "3:4 标清竖屏": "3:4 (Portrait Standard)"
+
+    # 时长（秒）：注入到 PrimitiveFloat 节点 105:111 的 value
+    duration_node: "105:111"
+    duration_field: "value"
+    duration_default: 5
+
+    # 分辨率 / 质量（ResolutionSelector 的 megapixels）
+    #   0.4 ≈ 480P，0.9 ≈ 720P，2.0 ≈ 1080P
+    resolution_node: "115"
+    resolution_field: "megapixels"
+    resolution_default: 0.4
+    resolution_options:
+      "480P": 0.4
+      "720P": 0.9
+      "1080P": 2.0
+
+  # ComfyUI 输出根目录（用于兜底定位产物）
+  output_dir: "[需填写] ComfyUI 输出根目录，如 D:/cfu/ComfyUI/output"
+
+  # 单个任务最长等待时间（秒）。长视频生成可能要 1000+ 秒，放宽到 1500
+  timeout: 1500
+
+  # 提交后轮询 /history 的间隔（秒）
+  poll_interval: 3
+
+# ------------------------------------------------------------
+# 3. Topaz Video AI（可选；enabled=false 则跳过超分，直接投递原片）
+# ------------------------------------------------------------
+topaz:
+  enabled: true
+
+  # Topaz 自带的魔改 ffmpeg（带 tvai_up 滤镜）
+  ffmpeg: "[需填写] Topaz 自带 ffmpeg.exe 完整路径"
+  ffprobe: "[需填写] Topaz 自带 ffprobe.exe 完整路径"
+
+  # 必须指向 models 子目录（里面是 prob-4.json 这类模型定义）
+  model_dir: "[需填写] Topaz models 目录，如 .../Topaz Video AI/App/Topaz Labs LLC/Topaz Video AI/models"
+
+  # 超分模型；prob-4 = Proteus v4，AI 生成视频效果好
+  model: "prob-4"
+
+  target_width: 1920
+  target_height: 1080
+
+  # 宽高比处理：现已按源片比例自动计算目标分辨率，此参数已不再使用
+  aspect_mode: "stretch"
+
+  # 编码器：本机有 N 卡用 h264_nvenc；纯 CPU 环境改 libx264
+  encoder: "h264_nvenc"
+  bitrate: "12M"
+
+  device: 0        # 0 = 第一块显卡，-2 = CPU
+  vram: 1
+  instances: 1
+
+  # 超分超时（秒）。纯缩放兜底用
+  timeout: 1800
+
+  # AI 模型单次静默超时（秒）：ffmpeg 超过此秒数无任何输出视为卡死，
+  # 强杀后自动回退到纯高质量缩放，保证每条都出 1080P 级成品
+  tvai_timeout: 600
+
+# ------------------------------------------------------------
+# 4. 百度网盘投递
+# ------------------------------------------------------------
+baidu:
+  # 百度网盘客户端「同步盘」映射到本地的文件夹
+  sync_root: "[需填写] 百度网盘同步盘本地根目录，如 D:/bdwp"
+
+  # 同步盘内的子目录，脚本会自动创建
+  target_subdir: "minimax_video_1080"
+
+  # 成品文件命名模板：{date} {time} {record_id} {seq} {prompt_short}
+  filename_template: "{date}_{time}_{prompt_short}.mp4"
+
+  # 提示词截取长度（用于文件名）
+  prompt_short_len: 20
+
+  # 先写 .tmp 再改名，避免网盘上传半成品
+  use_temp_suffix: true
+
+  # 改名后等待网盘客户端上传的观察时间（秒），仅用于日志提示
+  upload_wait_hint: 60
+
+# ------------------------------------------------------------
+# 5. 运行时
+# ------------------------------------------------------------
+runtime:
+  # 480P 原片归档目录，留空表示不保留
+  keep_source_dir: "[需填写] 480P 原片归档目录，留空则不保留"
+
+  # 单条任务失败后的重试次数
+  max_retries: 1
+
+  log_dir: "logs"
+  log_level: "INFO"
+  log_keep_days: 14
+
+  state_file: "state/processed.json"
+
+  check_on_start: true
+
+# ------------------------------------------------------------
+# 6. 完成通知（可选，手机上即时收到结果）
+# ------------------------------------------------------------
+# 采用「飞书群机器人 webhook」：零权限申请，建个群加机器人即可。
+# 不开启则把 enabled 改成 false。
+notify:
+  enabled: false
+
+  channel: "feishu_webhook"
+
+  # both=成功和失败都通知 / done=仅成功 / failed=仅失败
+  on: "both"
+
+  # 飞书自定义机器人 webhook 地址（enabled=true 时必填）
+  feishu_webhook_url: "[需填写]https://open.feishu.cn/open-apis/bot/v2/hook/xxxxxxxx"
+
+  # 机器人开启「签名校验」后，把签名密钥填这里；不开启则留空
+  feishu_webhook_secret: ""

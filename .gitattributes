@@ -1,0 +1,5 @@
+# 跨平台换行符规范化
+* text=auto eol=lf
+*.bat text eol=crlf
+*.png binary
+*.mp4 binary

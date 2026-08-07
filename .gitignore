@@ -1,0 +1,26 @@
+# ===== 私密配置：含飞书密钥与本机绝对路径，禁止提交 =====
+config.yaml
+
+# ===== Python 环境 =====
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+
+# ===== 运行时产物（状态/锁/日志/中间文件）=====
+logs/
+state/
+*.tmp
+
+# ===== 系统 / 编辑器 =====
+.DS_Store
+Thumbs.db
+*.swp
+.idea/
+.vscode/
+
+# ===== 本地临时 / 调试脚本（勿提交）=====
+_*.py
