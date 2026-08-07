@@ -96,8 +96,8 @@ comfyui:
   # ComfyUI 输出根目录（用于兜底定位产物）
   output_dir: "[需填写] ComfyUI 输出根目录，如 <你的 ComfyUI 输出目录>"
 
-  # 单个任务最长等待时间（秒）。长视频生成可能要 1000+ 秒，放宽到 1500
-  timeout: 1500
+  # 单个任务最长等待时间（秒）。MiniMax 文生视频 1080P 可能要 2000+ 秒，放宽到 3600（1 小时上限）
+  timeout: 3600
 
   # 提交后轮询 /history 的间隔（秒）
   poll_interval: 3
